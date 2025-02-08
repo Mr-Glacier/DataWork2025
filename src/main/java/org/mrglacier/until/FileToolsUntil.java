@@ -3,7 +3,9 @@ package org.mrglacier.until;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Mr-Glacier
@@ -128,84 +130,134 @@ public class FileToolsUntil {
         return null;
     }
 
-
-
-
-
     /**
-     * 创建一个新文件。
+     * [文件工具]
+     * 读取文件内容 AS String , 指定字符编码
      *
      * @param filePath 文件路径
-     * @return 文件是否成功创建
+     * @param charset  字符编码 "UTF-8", "GB2312"等
+     * @return 文件内容
      */
-
-    public static boolean createFile(String filePath) {
-        File file = new File(filePath);
+    public static String methodReadFileAsString(String filePath, String charset) {
+        // 检查文件路径是否为null或空
+        if (filePath == null || filePath.trim().isEmpty()) {
+            throw new IllegalArgumentException("File path is null or empty.");
+        }
+        // 检查文件是否存在
+        Path path = Paths.get(filePath);
+        if (!Files.exists(path)) {
+            throw new IllegalArgumentException("File does not exist: " + filePath);
+        }
         try {
-            return file.createNewFile();
+            return new String(Files.readAllBytes(path), charset);
         } catch (IOException e) {
-            System.err.println("创建文件时出错：" + e.getMessage());
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
-    /**
-     * 删除一个文件。
-     *
-     * @param filePath 文件路径
-     * @return 文件是否成功删除
-     */
-    public static boolean deleteFile(String filePath) {
-        File file = new File(filePath);
-        return file.delete();
-    }
 
     /**
-     * 读取文件内容。
+     * [文件工具]
+     * 按行读取文件内容，并返回一个包含每行的字符串列表。
      *
      * @param filePath 文件路径
-     * @return 文件内容列表，每行作为一个元素
+     * @return 读取文件内容
      */
-    public static List<String> readFile(String filePath) {
-        try {
-            return Files.readAllLines(Paths.get(filePath));
+    public static List<String> methodReadFileByLine(String filePath) {
+        List<String> results = new ArrayList<>();
+        if (filePath == null || filePath.trim().isEmpty()) {
+            throw new IllegalArgumentException("File path is null or empty.");
+        }
+        Path path = Paths.get(filePath);
+        if (!Files.exists(path)) {
+            throw new IllegalArgumentException("File does not exist: " + filePath);
+        }
+        try (Stream<String> lines = Files.lines(path)) {
+            lines.forEach(results::add);
+            return results;
         } catch (IOException e) {
-            System.err.println("读取文件时出错：" + e.getMessage());
-            return null;
+            System.err.println("Error occurred while reading the file: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
     }
 
+
     /**
-     * 写入内容到文件中（覆盖模式）。
+     * [文件工具]
+     * 写入文件内容 ,覆盖写入
      *
      * @param filePath 文件路径
-     * @param content  要写入的内容
-     * @return 操作是否成功
+     * @param content  文件内容
+     * @return 写入文件是否成功
      */
-    public static boolean writeFile(String filePath, String content) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            writer.write(content);
+    public static boolean methodWriteFile(String filePath, String content) {
+        try {
+            Files.write(Paths.get(filePath), content.getBytes(StandardCharsets.UTF_8));
             return true;
         } catch (IOException e) {
-            System.err.println("写入文件时出错：" + e.getMessage());
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
     /**
-     * 向文件中追加内容。
+     * [文件工具]
+     * 写入文件内容 ,追加写入
      *
      * @param filePath 文件路径
-     * @param content  要追加的内容
-     * @return 操作是否成功
+     * @param content  文件内容
+     * @param isAppend 是否追加写入
+     * @return 是否写入成功
      */
-    public static boolean appendToFile(String filePath, String content) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            writer.write(content);
+    public static boolean methodWriteFile(String filePath, String content, boolean isAppend) {
+        try {
+            Path path = Paths.get(filePath);
+            if (!isAppend) {
+                Files.write(path, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            } else {
+                Files.write(path, content.getBytes(StandardCharsets.UTF_8));
+            }
             return true;
-        } catch (IOException e) {
-            System.err.println("追加内容到文件时出错：" + e.getMessage());
-            return false;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * [文件工具]
+     * 写入文件内容, 使用缓冲区
+     *
+     * @param filePath 文件路径
+     * @param content  文件内容
+     */
+    public void methodWriteFileBuffer(String filePath, String content) {
+        try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(Files.newOutputStream(Paths.get(filePath)), 331074)) {
+            bufferedOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
+            bufferedOutputStream.flush();
+        } catch (IOException ex) {
+            System.err.println("Error occurred while writing to the file: " + ex.getMessage());
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * [文件工具]
+     * 写入文件内容, 使用缓冲区 ,是否追加写入
+     *
+     * @param filePath 文件路径
+     * @param content  文件内容
+     * @param append   是否追加写入
+     */
+    public void methodWriteFileBuffer(String filePath, String content, boolean append) {
+        OpenOption[] options = append ?
+                new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND} :
+                new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
+
+        try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(Files.newOutputStream(Paths.get(filePath), options), 331074)) {
+            bufferedOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
+            bufferedOutputStream.flush();
+        } catch (IOException ex) {
+            System.err.println("Error occurred while writing to the file: " + ex.getMessage());
+            throw new RuntimeException(ex);
         }
     }
 
