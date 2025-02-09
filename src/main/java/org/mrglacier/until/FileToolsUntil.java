@@ -22,7 +22,7 @@ public class FileToolsUntil {
      * @param dirPath 文件夹路径
      * @return 返回值：true：创建成功，false：创建失败
      */
-    public static boolean methodCreatFolder(String dirPath) {
+    public boolean methodCreatFolder(String dirPath) {
         File file = new File(dirPath);
         if (!file.exists()) {
             return file.mkdirs();
@@ -38,7 +38,7 @@ public class FileToolsUntil {
      *
      * @param dirPath 文件夹路径
      */
-    public static boolean methodDeleteFolder(String dirPath) {
+    public boolean methodDeleteFolder(String dirPath) {
         File file = new File(dirPath);
         if (file.exists() && file.isDirectory()) {
             // 删除当前目录下的所有文件和子目录
@@ -77,7 +77,7 @@ public class FileToolsUntil {
      * @param newPath 新文件路径
      * @return 返回值：true：重命名成功，false：重命名失败
      */
-    public static boolean methodRenameFolder(String oldPath, String newPath) {
+    public boolean methodRenameFolder(String oldPath, String newPath) {
         try {
             Path oldFilePath = Paths.get(oldPath);
             Path newFilePath = Paths.get(newPath);
@@ -107,7 +107,7 @@ public class FileToolsUntil {
      * @param filePath 文件路径
      * @return 文件内容
      */
-    public static String methodReadFileAsString(String filePath) {
+    public String methodReadFileAsString(String filePath) {
         // 检查文件路径是否为null或空
         if (filePath == null || filePath.trim().isEmpty()) {
             throw new IllegalArgumentException("File path is null or empty.");
@@ -138,7 +138,7 @@ public class FileToolsUntil {
      * @param charset  字符编码 "UTF-8", "GB2312"等
      * @return 文件内容
      */
-    public static String methodReadFileAsString(String filePath, String charset) {
+    public String methodReadFileAsString(String filePath, String charset) {
         // 检查文件路径是否为null或空
         if (filePath == null || filePath.trim().isEmpty()) {
             throw new IllegalArgumentException("File path is null or empty.");
@@ -163,7 +163,7 @@ public class FileToolsUntil {
      * @param filePath 文件路径
      * @return 读取文件内容
      */
-    public static List<String> methodReadFileByLine(String filePath) {
+    public List<String> methodReadFileByLine(String filePath) {
         List<String> results = new ArrayList<>();
         if (filePath == null || filePath.trim().isEmpty()) {
             throw new IllegalArgumentException("File path is null or empty.");
@@ -190,7 +190,7 @@ public class FileToolsUntil {
      * @param content  文件内容
      * @return 写入文件是否成功
      */
-    public static boolean methodWriteFile(String filePath, String content) {
+    public boolean methodWriteFile(String filePath, String content) {
         try {
             Files.write(Paths.get(filePath), content.getBytes(StandardCharsets.UTF_8));
             return true;
@@ -208,10 +208,10 @@ public class FileToolsUntil {
      * @param isAppend 是否追加写入
      * @return 是否写入成功
      */
-    public static boolean methodWriteFile(String filePath, String content, boolean isAppend) {
+    public boolean methodWriteFile(String filePath, String content, boolean isAppend) {
         try {
             Path path = Paths.get(filePath);
-            if (!isAppend) {
+            if (isAppend) {
                 Files.write(path, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             } else {
                 Files.write(path, content.getBytes(StandardCharsets.UTF_8));
@@ -229,10 +229,11 @@ public class FileToolsUntil {
      * @param filePath 文件路径
      * @param content  文件内容
      */
-    public void methodWriteFileBuffer(String filePath, String content) {
+    public boolean methodWriteFileBuffer(String filePath, String content) {
         try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(Files.newOutputStream(Paths.get(filePath)), 331074)) {
             bufferedOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
             bufferedOutputStream.flush();
+            return true;
         } catch (IOException ex) {
             System.err.println("Error occurred while writing to the file: " + ex.getMessage());
             throw new RuntimeException(ex);
@@ -247,7 +248,7 @@ public class FileToolsUntil {
      * @param content  文件内容
      * @param append   是否追加写入
      */
-    public void methodWriteFileBuffer(String filePath, String content, boolean append) {
+    public boolean methodWriteFileBuffer(String filePath, String content, boolean append) {
         OpenOption[] options = append ?
                 new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND} :
                 new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
@@ -255,6 +256,7 @@ public class FileToolsUntil {
         try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(Files.newOutputStream(Paths.get(filePath), options), 331074)) {
             bufferedOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
             bufferedOutputStream.flush();
+            return true;
         } catch (IOException ex) {
             System.err.println("Error occurred while writing to the file: " + ex.getMessage());
             throw new RuntimeException(ex);

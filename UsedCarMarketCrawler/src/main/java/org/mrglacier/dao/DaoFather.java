@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 
@@ -70,9 +69,7 @@ public class DaoFather {
      * @param choseTable 数据表选择
      */
     public DaoFather(int choseDb, int choseTable) {
-        //读取配置文件
-//        FileToolsUntil readFileUtil = new FileToolsUntil();
-        // 获取类加载器
+        // 读取相对路径下的配置文件
         InputStream inputStream = DaoFather.class.getClassLoader().getResourceAsStream("DBConfig.json");
         StringBuilder configContent = new StringBuilder();
         if (inputStream != null) {
